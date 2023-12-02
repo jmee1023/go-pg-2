@@ -4,27 +4,35 @@ import (
 	"fmt"
 )
 
-func bulkSend(numMessages int) float64 {
-	totalCost := 0.0
-	for i := 0; i < numMessages; i++ {
-		totalCost += 1 + (float64(i) * 0.01)
+func getMaxMessagesToSend(costMultiplier float64, maxCostInPennies int) int {
+	actualCostInPennies := 1.0
+	maxMessagesToSend := 0
+	for float64(actualCostInPennies) < float64(maxCostInPennies) {
+		actualCostInPennies *= costMultiplier
+		maxMessagesToSend++
 	}
-	return totalCost
+	if int(actualCostInPennies) > maxCostInPennies {
+		maxMessagesToSend--
+	}
+	return maxMessagesToSend
 }
 
-// don't edit below this line
-
-func test(numMessages int) {
-	fmt.Printf("Sending %v messages\n", numMessages)
-	cost := bulkSend(numMessages)
-	fmt.Printf("Bulk send complete! Cost = %.2f\n", cost)
-	fmt.Println("===============================================================")
+func test(costMultiplier float64, maxCostInPennies int) {
+	maxMessagesToSend := getMaxMessagesToSend(costMultiplier, maxCostInPennies)
+	fmt.Printf("Multiplier: %v\n",
+		costMultiplier,
+	)
+	fmt.Printf("Max cost: %v\n",
+		maxCostInPennies,
+	)
+	fmt.Printf("Max messages you can send: %v\n",
+		maxMessagesToSend,
+	)
+	fmt.Println("====================================")
 }
 
 func main() {
-	test(10)
-	test(20)
-	test(30)
-	test(40)
-	test(50)
+	test(1.1, 5)
+	test(1.3, 10)
+	test(1.35, 25)
 }
