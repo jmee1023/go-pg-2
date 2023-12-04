@@ -1,61 +1,47 @@
 package main
 
-import (
-	"errors"
-	"fmt"
-)
+import "fmt"
 
-const (
-	planFree = "free"
-	planPro  = "pro"
-)
-
-func getMessageWithRetriesForPlan(plan string) ([]string, error) {
-	allMessages := getMessageWithRetries()
-	if plan == planPro {
-		return allMessages[:], nil
-	} else if plan == planFree {
-		return allMessages[0:2], nil
-	} else {
-		return nil, errors.New("unsupported plan")
+func getFormattedMessages(messages []string, formatter func(string) string) []string {
+	formattedMessage := []string{}
+	for _, message := range messages {
+		formattedMessage = append(formattedMessage, formatter(message))
 	}
+	return formattedMessage
 }
 
-func getMessageWithRetries() [3]string {
-	return [3]string{
-		"click here to sign up",
-		"pretty please click here",
-		"we beg you to sign up",
-	}
+func addSignature(message string) string {
+	return message + " Kind Regard."
 }
 
-func test(name string, doneAt int, plan string) {
-	defer fmt.Println("=====================================")
-	fmt.Printf("sending to %v...", name)
-	fmt.Println()
+func addGreeting(message string) string {
+	return "Hello " + message
+}
 
-	messages, err := getMessageWithRetriesForPlan(plan)
-	if err != nil {
-		fmt.Println("Error:", err)
+func test(messages []string, formatter func(string) string) {
+	defer fmt.Println("====================================")
+	formattedMessages := getFormattedMessages(messages, formatter)
+	if len(formattedMessages) != len(messages) {
+		fmt.Println("The number of messages returned is incorrect.")
 		return
 	}
-	for i := 0; i < len(messages); i++ {
-		msg := messages[i]
-		fmt.Printf(`sending: "%v"`, msg)
-		fmt.Println()
-		if i == doneAt {
-			fmt.Println("they responded!")
-			break
-		}
-		if i == len(messages)-1 {
-			fmt.Println("no response")
-		}
+	for i, message := range messages {
+		formatted := formattedMessages[i]
+		fmt.Printf(" * %s -> %s\n", message, formatted)
 	}
 }
 
 func main() {
-	test("Ozgur", 3, planFree)
-	test("Jeff", 3, planPro)
-	test("Sally", 2, planPro)
-	test("Sally", 3, "no plan")
+	test([]string{
+		"Thanks for getting back to me.",
+		"Great to see you again.",
+		"I would love to hang out this weekend.",
+		"Got any hot stock tips?",
+	}, addSignature)
+	test([]string{
+		"Thanks for getting back to me.",
+		"Great to see you again.",
+		"I would love to hang out this weekend.",
+		"Got any hot stock tips?",
+	}, addGreeting)
 }
