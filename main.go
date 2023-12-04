@@ -1,38 +1,61 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 )
 
-func getMaxMessagesToSend(costMultiplier float64, maxCostInPennies int) int {
-	actualCostInPennies := 1.0
-	maxMessagesToSend := 0
-	for float64(actualCostInPennies) < float64(maxCostInPennies) {
-		actualCostInPennies *= costMultiplier
-		maxMessagesToSend++
+const (
+	planFree = "free"
+	planPro  = "pro"
+)
+
+func getMessageWithRetriesForPlan(plan string) ([]string, error) {
+	allMessages := getMessageWithRetries()
+	if plan == planPro {
+		return allMessages[:], nil
+	} else if plan == planFree {
+		return allMessages[0:2], nil
+	} else {
+		return nil, errors.New("unsupported plan")
 	}
-	if int(actualCostInPennies) > maxCostInPennies {
-		maxMessagesToSend--
-	}
-	return maxMessagesToSend
 }
 
-func test(costMultiplier float64, maxCostInPennies int) {
-	maxMessagesToSend := getMaxMessagesToSend(costMultiplier, maxCostInPennies)
-	fmt.Printf("Multiplier: %v\n",
-		costMultiplier,
-	)
-	fmt.Printf("Max cost: %v\n",
-		maxCostInPennies,
-	)
-	fmt.Printf("Max messages you can send: %v\n",
-		maxMessagesToSend,
-	)
-	fmt.Println("====================================")
+func getMessageWithRetries() [3]string {
+	return [3]string{
+		"click here to sign up",
+		"pretty please click here",
+		"we beg you to sign up",
+	}
+}
+
+func test(name string, doneAt int, plan string) {
+	defer fmt.Println("=====================================")
+	fmt.Printf("sending to %v...", name)
+	fmt.Println()
+
+	messages, err := getMessageWithRetriesForPlan(plan)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	for i := 0; i < len(messages); i++ {
+		msg := messages[i]
+		fmt.Printf(`sending: "%v"`, msg)
+		fmt.Println()
+		if i == doneAt {
+			fmt.Println("they responded!")
+			break
+		}
+		if i == len(messages)-1 {
+			fmt.Println("no response")
+		}
+	}
 }
 
 func main() {
-	test(1.1, 5)
-	test(1.3, 10)
-	test(1.35, 25)
+	test("Ozgur", 3, planFree)
+	test("Jeff", 3, planPro)
+	test("Sally", 2, planPro)
+	test("Sally", 3, "no plan")
 }
