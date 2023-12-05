@@ -1,47 +1,38 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
-func getFormattedMessages(messages []string, formatter func(string) string) []string {
-	formattedMessage := []string{}
-	for _, message := range messages {
-		formattedMessage = append(formattedMessage, formatter(message))
+func waitForDbs(numDBs int, dbChan chan struct{}) {
+	for i := 0; i < numDBs; i++ {
+		<-dbChan
 	}
-	return formattedMessage
 }
 
-func addSignature(message string) string {
-	return message + " Kind Regard."
-}
-
-func addGreeting(message string) string {
-	return "Hello " + message
-}
-
-func test(messages []string, formatter func(string) string) {
-	defer fmt.Println("====================================")
-	formattedMessages := getFormattedMessages(messages, formatter)
-	if len(formattedMessages) != len(messages) {
-		fmt.Println("The number of messages returned is incorrect.")
-		return
-	}
-	for i, message := range messages {
-		formatted := formattedMessages[i]
-		fmt.Printf(" * %s -> %s\n", message, formatted)
-	}
+func test(numDBs int) {
+	dbChan := getDatabasesChannel(numDBs)
+	fmt.Printf("Waiting for %v databases...\n", numDBs)
+	waitForDbs(numDBs, dbChan)
+	time.Sleep(time.Millisecond * 10) // ensure the last print statement happens
+	fmt.Println("All databases are online!")
+	fmt.Println("=====================================")
 }
 
 func main() {
-	test([]string{
-		"Thanks for getting back to me.",
-		"Great to see you again.",
-		"I would love to hang out this weekend.",
-		"Got any hot stock tips?",
-	}, addSignature)
-	test([]string{
-		"Thanks for getting back to me.",
-		"Great to see you again.",
-		"I would love to hang out this weekend.",
-		"Got any hot stock tips?",
-	}, addGreeting)
+	test(3)
+	test(4)
+	test(5)
+}
+
+func getDatabasesChannel(numDBs int) chan struct{} {
+	ch := make(chan struct{})
+	go func() {
+		for i := 0; i < numDBs; i++ {
+			ch <- struct{}{}
+			fmt.Printf("Database %v is online\n", i+1)
+		}
+	}()
+	return ch
 }
